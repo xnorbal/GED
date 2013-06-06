@@ -48,12 +48,11 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 	 * TagBrowser permettant de rechercher les documents par "tag"
 	 */
 	private TagBrowser browser;
-
+	private DetailPanel detailPanel;
 	/**
 	 * Colonnes de la table
 	 */
-	private String[] colNames = { "nom", "date", "note", "largeur", "hauteur",
-			"taille", "chemin" };
+	private String[] colNames = { "id", "nom", "note", "chemin" };
 	/**
 	 * Données de la table
 	 */
@@ -86,30 +85,33 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		JScrollPane scrollPane = new JScrollPane(table);// Permet de scroller si
 														// la table est trop
 														// grande
-		
-		/* Ajout des éléments au panel*/
-		cons.insets=new Insets(2,2,2,2);
-		
-		setConstraints(0, 0, 1, 2);
+
+		/* Ajout des éléments au panel */
+		cons.insets = new Insets(2, 2, 2, 2);
+
+		setConstraints(0, 0, 1, 3);
 		add(browser, cons);
-		setConstraints(1, 0, 1, 2);
+		setConstraints(1, 0, 1, 3);
 		add(scrollPane, cons);
-		//miniature
+		// miniature
 		setConstraints(2, 0, 1, 1);
-		
+
 		icon = new ImageIcon("images\\unknow.jpg");
-		icon = new ImageIcon(icon.getImage().getScaledInstance(300, 300*icon.getIconHeight()/icon.getIconWidth(),
+		icon = new ImageIcon(icon.getImage().getScaledInstance(250,
+				250 * icon.getIconHeight() / icon.getIconWidth(),
 				Image.SCALE_DEFAULT));
 		miniature = new JLabel(icon);
-		cons.anchor=GridBagConstraints.NORTH;
+		cons.anchor = GridBagConstraints.NORTH;
 		add(miniature, cons);
-		//Texte sous miniature
-		setConstraints(2,1,1,1);
-		cons.fill=GridBagConstraints.BOTH;
-		texte = new JTextField("Schroom");
-		textContainer = new JScrollPane(texte);
-		add(textContainer,cons);
-		
+		setConstraints(2, 1, 1, 1);
+		detailPanel=new DetailPanel();
+		add(detailPanel, cons);
+		// Texte sous miniature
+		setConstraints(2, 2, 1, 1);
+		cons.fill = GridBagConstraints.BOTH;
+		texte = new JTextField("");
+		add(texte, cons);
+		repaint();
 	}
 
 	/**
@@ -163,13 +165,10 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 
 		data = new String[docs.size()][colNames.length];
 		for (int i = 0; i < docs.size(); i++) {
-			data[i][0] = docs.get(i).getTitle();
-			data[i][1] = docs.get(i).getDate().toLocaleString();
+			data[i][0] = Integer.toString(docs.get(i).getId());
+			data[i][1] = docs.get(i).getTitle();
 			data[i][2] = Integer.toString(docs.get(i).getNote()) + "/5";
-			data[i][3] = Integer.toString(docs.get(i).getWidth());
-			data[i][4] = Integer.toString(docs.get(i).getHeight());
-			data[i][5] = Integer.toString(docs.get(i).getSize() / 1024) + " Ko";
-			data[i][6] = docs.get(i).getPath();
+			data[i][3] = docs.get(i).getPath();
 		}
 		TableBibliothequeModel model = new TableBibliothequeModel(data,
 				colNames);
@@ -189,16 +188,22 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 
 		} else {// ligne selectionné - on affiche l'image de la miniature
 			int selectedRow = lsm.getMinSelectionIndex();
-			String chemin = (String) table.getValueAt(selectedRow, 6);
+			String chemin = (String) table.getValueAt(selectedRow, 3);
 			icon = new ImageIcon(chemin);
-			icon = new ImageIcon(icon.getImage().getScaledInstance(300, 300*icon.getIconHeight()/icon.getIconWidth(),
+			icon = new ImageIcon(icon.getImage().getScaledInstance(250,
+					250 * icon.getIconHeight() / icon.getIconWidth(),
 					Image.SCALE_DEFAULT));
 			remove(miniature);
-			repaint();
+			remove(detailPanel);
 			miniature = new JLabel(icon);
 			setConstraints(2, 0, 1, 1);
-			cons.anchor=GridBagConstraints.NORTH;
+			cons.anchor = GridBagConstraints.NORTH;
 			add(miniature, cons);
+			setConstraints(2, 1, 1, 1);
+			detailPanel=new DetailPanel(Integer.parseInt((String)table.getValueAt(selectedRow, 0)));
+			add(detailPanel, cons);
+			texte.setText(detailPanel.getDocument().getDesc());
+			repaint();
 			revalidate();
 		}
 	}

@@ -22,7 +22,8 @@ public class Document extends ImageIcon {
 	 * Constructeur principal de l'objet Document Initialisation des champs
 	 * obligatoires
 	 */
-	public Document(int id, String title, String chemin, int width, int height, int size) {
+	public Document(int id, String title, String chemin, int width, int height,
+			int size) {
 		super(chemin);
 		this.id = id;
 		this.tags = new ArrayList<String>();
@@ -64,7 +65,8 @@ public class Document extends ImageIcon {
 	/**
 	 * Constructeur complet de l'objet Document (sauf description)
 	 */
-	public Document(int id, Date date, int size, String title, String chemin, int width, int height, int note) {
+	public Document(int id, Date date, int size, String title, String chemin,
+			int width, int height, int note) {
 		this(id, title, chemin, width, height, size);
 		this.setNote(note);
 		this.setDate(date);
@@ -130,7 +132,9 @@ public class Document extends ImageIcon {
 		String s = new String();
 		while (i.hasNext()) {
 			s += i.next();
-			s += "\n";
+			if (i.hasNext()) {
+				s += "\n";
+			}
 		}
 		return s;
 	}
@@ -140,8 +144,18 @@ public class Document extends ImageIcon {
 		String s = new String();
 		while (i.hasNext()) {
 			s += i.next().getTitle();
-			s += "\n";
+			if (i.hasNext()) {
+				s += "\n";
+			}
 		}
 		return s;
+	}
+
+	public int getId() {
+		return id;
+	}
+	
+	public String getDesc(){
+		return desc;
 	}
 }
