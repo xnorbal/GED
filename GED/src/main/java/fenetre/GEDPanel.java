@@ -61,42 +61,11 @@ public class GEDPanel extends JPanel {
 
 		browser = new TagBrowser();// initialisation du TagBrowser
 		
-		docs = new ArrayList<Document>();
-		// Connection à la BD
-		Connection conn = null;
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			System.out.println("driver OK");
-			conn = DriverManager.getConnection("jdbc:mysql://localhost/ged",
-					"root", "");
-			System.out.println("connection OK");
-			// Extraction des données
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT * FROM IMAGE");
-			while (rs.next()) {
-				docs.add(new Document(rs.getString("CHEMIN"), rs.getString("NOM"), rs.getString("CHEMIN"), rs.getInt("WIDTH"), rs.getInt("HEIGHT"), rs.getInt("SIZE"), rs.getInt("NOTE")));
-			}
-			conn.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
 		
-		data = new String [docs.size()][colNames.length];
-		for(int i = 0 ; i<docs.size();i++)
-		{
-			data[i][0]=docs.get(i).getTitle();
-			data[i][1]=Integer.toString(docs.get(i).getDate());
-			data[i][2]=Integer.toString(docs.get(i).getNote())+"/5";
-			data[i][3]=Integer.toString(docs.get(i).getWidth());
-			data[i][4]=Integer.toString(docs.get(i).getHeight());
-			data[i][5]=Integer.toString(docs.get(i).getSize()/1024)+" Ko";
-			data[i][6]=docs.get(i).getPath();
-		}
 
 		// Initialisation de la table
-		table = new JTable(new TableBibliothequeModel(data, colNames));
+		table = new JTable();
+		updateTable();
 		table.setFillsViewportHeight(true);
 		JScrollPane scrollPane = new JScrollPane(table);// Permet de scroller si la table est trop grande
 
@@ -128,5 +97,44 @@ public class GEDPanel extends JPanel {
 
 	public JTable getTable() {
 		return table;
+	}
+
+	public void updateTable() {
+		docs = new ArrayList<Document>();
+		// Connection à la BD
+		Connection conn = null;
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			System.out.println("driver OK");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost/ged",
+					"root", "");
+			System.out.println("connection OK");
+			// Extraction des données
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT * FROM IMAGE");
+			while (rs.next()) {
+				docs.add(new Document(rs.getInt("I_ID"), rs.getDate("I_DATE"), rs.getInt("SIZE"), rs.getString("NOM"), rs.getString("CHEMIN"), rs.getInt("WIDTH"), rs.getInt("HEIGHT"), rs.getInt("NOTE")));
+			}
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		data = new String [docs.size()][colNames.length];
+		for(int i = 0 ; i<docs.size();i++)
+		{
+			data[i][0]=docs.get(i).getTitle();
+			data[i][1]=docs.get(i).getDate().toLocaleString();
+			data[i][2]=Integer.toString(docs.get(i).getNote())+"/5";
+			data[i][3]=Integer.toString(docs.get(i).getWidth());
+			data[i][4]=Integer.toString(docs.get(i).getHeight());
+			data[i][5]=Integer.toString(docs.get(i).getSize()/1024)+" Ko";
+			data[i][6]=docs.get(i).getPath();
+		}
+		TableBibliothequeModel model = new TableBibliothequeModel(data, colNames);
+		table.setModel(model);
+		model.fireTableDataChanged();
 	}
 }

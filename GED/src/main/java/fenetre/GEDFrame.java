@@ -1,20 +1,20 @@
 package fenetre;
 
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Date;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 
-import com.mysql.jdbc.Connection;
-
-import donnees.Document;
 import donnees.FiltreImage;
 
 /**
@@ -41,6 +41,10 @@ public class GEDFrame extends JFrame implements ActionListener {
 	 */
 	private JButton ouvrir;
 	/**
+	 * Bouton permettant d editer les infos de base
+	 */
+	private JButton editer;
+	/**
 	 * Panel de la JFrame
 	 */
 	private GEDPanel myGED;
@@ -65,6 +69,7 @@ public class GEDFrame extends JFrame implements ActionListener {
 		suppression = new JButton("", new ImageIcon("images\\supprimer.png"));
 		aide = new JButton("", new ImageIcon("images\\help.png"));
 		ouvrir = new JButton("", new ImageIcon("images\\ouvrir.png"));
+		editer = new JButton("", new ImageIcon("images\\editer.png"));
 
 		ouvrir.addActionListener(this);
 		aide.addActionListener(this);
@@ -97,6 +102,7 @@ public class GEDFrame extends JFrame implements ActionListener {
 		menuBar.add(suppression);
 		menuBar.add(aide);
 		menuBar.add(ouvrir);
+		menuBar.add(editer);
 
 		return menuBar;
 	}
@@ -117,18 +123,16 @@ public class GEDFrame extends JFrame implements ActionListener {
 				}
 
 			} else if (button == ajout) {
-
 				OpenPicture();
-				/*
-				 * !!!!!!!! NE REND PAS LA MAIN SUR LES AUTRES BOUTONS
-				 */
 				// A la sorie enregistrer dans la TABLE
 			} else if (button == aide) {
 				// Ouverture du fichier README
 			} else if (button == suppression) {
 
-				// supprimer la lign e le lien vers le fichier
+				// supprimer la ligne le lien vers le fichier
 				// Dans la table
+			} else if (button == editer){
+				//Ouverture de la fenetre d'edition
 			}
 		}
 	}
@@ -155,19 +159,22 @@ public class GEDFrame extends JFrame implements ActionListener {
 				// Extraction des données
 				Statement stmt = conn.createStatement();
 				String request;
+				Date d;
 				for (int i = 0; i < selectedfiles.length; i++) {
 					icon = new ImageIcon(selectedfiles[i].getAbsolutePath());
+					d =  new Date(selectedfiles[i].lastModified());
 					request = "INSERT INTO IMAGE VALUES(NULL ,\""
 							+ selectedfiles[i].getName() + "\",\""
-							+ selectedfiles[i].getAbsolutePath().replace("\\", "\\\\") + "\","
-							+ 0 + ","
+							+ selectedfiles[i].getAbsolutePath().replace("\\", "\\\\") + "\",\""
+							+ d.getYear()+"-("+d.getDay()+"-"+d.getMonth() + "\","
 							+ icon.getIconWidth() + "," + icon.getIconHeight()
 							+ "," + (int)selectedfiles[i].length() + "," + 0
 							+ ")";
 					System.out.println(request);
-					System.out.println((int)selectedfiles[i].length());
 					stmt.executeUpdate(request);
 				}
+				conn.close();
+				myGED.updateTable();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			} catch (ClassNotFoundException e) {

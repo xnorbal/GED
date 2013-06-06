@@ -8,6 +8,7 @@ public class Document extends ImageIcon {
 	private static final long serialVersionUID = 1L;
 	public List<String> tags;
 	public List<Serie> series;
+	public int id;
 	public String title;
 	public String path;
 	public String desc; // Facultatif
@@ -15,14 +16,15 @@ public class Document extends ImageIcon {
 	public int height;
 	public int size;
 	public int note; // Facultatif, entre 0 et 5
-	public int date; // Facultatif
+	public Date date; // Facultatif
 
 	/**
 	 * Constructeur principal de l'objet Document Initialisation des champs
 	 * obligatoires
 	 */
-	public Document(String image, String title, String chemin, int width, int height, int size) {
-
+	public Document(int id, String title, String chemin, int width, int height, int size) {
+		super(chemin);
+		this.id = id;
 		this.tags = new ArrayList<String>();
 		this.series = new ArrayList<Serie>();
 		this.path = chemin;
@@ -35,35 +37,35 @@ public class Document extends ImageIcon {
 	/**
 	 * Constructeur de l'objet Document en initialisant la note
 	 */
-	public Document(String image, String title, String chemin, int width, int height, int size, int note) {
-		this(image, title, chemin, width, height, size);
+	public Document(int id, String title, String chemin, int width, int height,
+			int size, int note) {
+		this(id, title, chemin, width, height, size);
 		this.setNote(note);
-		date = 0;
 	}
 
 	/**
 	 * Constructeur de l'objet Document en initialisant la description
 	 */
-	public Document(String image, String title, String chemin, int width, int height, int size, String description) {
-		new Document(image, title, chemin, width, height, size);
+	public Document(int id, String title, String chemin, int width, int height,
+			int size, String description) {
+		this(id, title, chemin, width, height, size);
 		this.setDesc(description);
 	}
 
 	/**
 	 * Constructeur de l'objet Document en initialisant la date
 	 */
-	public Document(int da, String image, String title, String chemin, int width, int height, int size) {
-		new Document(image, title, chemin, width, height, size);
-		this.setDate(da);
+	public Document(int id, Date date, String title, String chemin, int width,
+			int height, int size) {
+		this(id, title, chemin, width, height, size);
+		this.setDate(date);
 	}
 
 	/**
-	 * Constructeur complet de l'objet Document
+	 * Constructeur complet de l'objet Document (sauf description)
 	 */
-	public Document(String image, String title, String chemin, int width, int height, int size,
-			int Da, String description) {
-		new Document(image, title, chemin, width, height, size);
-		this.setDesc(description);
+	public Document(int id, Date date, int size, String title, String chemin, int width, int height, int note) {
+		this(id, title, chemin, width, height, size);
 		this.setNote(note);
 		this.setDate(date);
 	}
@@ -87,7 +89,7 @@ public class Document extends ImageIcon {
 		this.desc = D;
 	}
 
-	public void setDate(int D) {
+	public void setDate(Date D) {
 		this.date = D;
 	}
 
@@ -118,8 +120,8 @@ public class Document extends ImageIcon {
 	public int getNote() {
 		return this.note;
 	}
-	
-	public int getDate() {
+
+	public Date getDate() {
 		return this.date;
 	}
 
