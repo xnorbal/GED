@@ -117,7 +117,6 @@ public class GEDFrame extends JFrame implements ActionListener {
 				if (row >= 0) {
 					// Récupération du chemin associé à la ligne
 					// dans la 4eme colonne le chemin d'accè du fichier
-					System.out.println(myGED.getTable().getValueAt(row, 2));
 					OpenPictureWindowsView(chemin);
 					// Attention si pas de ligne selectionné ca ne marche pas
 				}
@@ -166,7 +165,7 @@ public class GEDFrame extends JFrame implements ActionListener {
 					request = "INSERT INTO IMAGE VALUES(NULL ,\""
 							+ selectedfiles[i].getName() + "\",\""
 							+ selectedfiles[i].getAbsolutePath().replace("\\", "\\\\") + "\",\""
-							+ d.getYear()+"-("+d.getDay()+"-"+d.getMonth() + "\","
+							+ d.toString() + "\","
 							+ icon.getIconWidth() + "," + icon.getIconHeight()
 							+ "," + (int)selectedfiles[i].length() + "," + 0
 							+ ")";

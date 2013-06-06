@@ -1,7 +1,10 @@
 package fenetre;
 
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -10,11 +13,16 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import donnees.Document;
 
@@ -27,7 +35,7 @@ import table.TableBibliothequeModel;
  * @author Xavier
  * 
  */
-public class GEDPanel extends JPanel {
+public class GEDPanel extends JPanel implements ListSelectionListener {
 
 	/**
 	 * contraintes utilisées pour le placement des objets SWING
@@ -41,7 +49,8 @@ public class GEDPanel extends JPanel {
 	/**
 	 * Colonnes de la table
 	 */
-	private String[] colNames = { "nom", "date", "note", "largeur", "hauteur", "taille", "chemin"};
+	private String[] colNames = { "nom", "date", "note", "largeur", "hauteur",
+			"taille", "chemin" };
 	/**
 	 * Données de la table
 	 */
@@ -51,6 +60,10 @@ public class GEDPanel extends JPanel {
 	 */
 	private JTable table;
 	private List<Document> docs;
+	ImageIcon icon;
+	JLabel miniature;
+	JLabel texte;
+
 	/**
 	 * Constructeur du panel
 	 */
@@ -60,20 +73,32 @@ public class GEDPanel extends JPanel {
 		cons = new GridBagConstraints();
 
 		browser = new TagBrowser();// initialisation du TagBrowser
-		
-		
 
 		// Initialisation de la table
 		table = new JTable();
+		table.getSelectionModel().addListSelectionListener(this);
 		updateTable();
 		table.setFillsViewportHeight(true);
-		JScrollPane scrollPane = new JScrollPane(table);// Permet de scroller si la table est trop grande
+		JScrollPane scrollPane = new JScrollPane(table);// Permet de scroller si
+														// la table est trop
+														// grande
 
-		// Ajout des éléments au panel
+		/* Ajout des éléments au panel*/
 		setConstraints(0, 0, 1, 1);
 		add(browser, cons);
 		setConstraints(1, 0, 1, 1);
 		add(scrollPane, cons);
+		//miniature
+		setConstraints(2, 0, 1, 1);
+		
+		icon = new ImageIcon("images\\unknow.jpg");
+		icon = new ImageIcon(icon.getImage().getScaledInstance(200, 200,
+				Image.SCALE_DEFAULT));
+		miniature = new JLabel(icon);
+		cons.anchor=GridBagConstraints.NORTH;
+		add(miniature, cons);
+		
+		
 	}
 
 	/**
@@ -113,7 +138,10 @@ public class GEDPanel extends JPanel {
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT * FROM IMAGE");
 			while (rs.next()) {
-				docs.add(new Document(rs.getInt("I_ID"), rs.getDate("I_DATE"), rs.getInt("SIZE"), rs.getString("NOM"), rs.getString("CHEMIN"), rs.getInt("WIDTH"), rs.getInt("HEIGHT"), rs.getInt("NOTE")));
+				docs.add(new Document(rs.getInt("I_ID"), rs.getDate("I_DATE"),
+						rs.getInt("SIZE"), rs.getString("NOM"), rs
+								.getString("CHEMIN"), rs.getInt("WIDTH"), rs
+								.getInt("HEIGHT"), rs.getInt("NOTE")));
 			}
 			conn.close();
 		} catch (SQLException e) {
@@ -121,20 +149,46 @@ public class GEDPanel extends JPanel {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-		
-		data = new String [docs.size()][colNames.length];
-		for(int i = 0 ; i<docs.size();i++)
-		{
-			data[i][0]=docs.get(i).getTitle();
-			data[i][1]=docs.get(i).getDate().toLocaleString();
-			data[i][2]=Integer.toString(docs.get(i).getNote())+"/5";
-			data[i][3]=Integer.toString(docs.get(i).getWidth());
-			data[i][4]=Integer.toString(docs.get(i).getHeight());
-			data[i][5]=Integer.toString(docs.get(i).getSize()/1024)+" Ko";
-			data[i][6]=docs.get(i).getPath();
+
+		data = new String[docs.size()][colNames.length];
+		for (int i = 0; i < docs.size(); i++) {
+			data[i][0] = docs.get(i).getTitle();
+			data[i][1] = docs.get(i).getDate().toLocaleString();
+			data[i][2] = Integer.toString(docs.get(i).getNote()) + "/5";
+			data[i][3] = Integer.toString(docs.get(i).getWidth());
+			data[i][4] = Integer.toString(docs.get(i).getHeight());
+			data[i][5] = Integer.toString(docs.get(i).getSize() / 1024) + " Ko";
+			data[i][6] = docs.get(i).getPath();
 		}
-		TableBibliothequeModel model = new TableBibliothequeModel(data, colNames);
+		TableBibliothequeModel model = new TableBibliothequeModel(data,
+				colNames);
 		table.setModel(model);
 		model.fireTableDataChanged();
 	}
+
+	public void valueChanged(ListSelectionEvent listSelectionEvent) {
+
+		if (listSelectionEvent.getValueIsAdjusting()) {
+			return;
+		}
+		ListSelectionModel lsm = (ListSelectionModel) listSelectionEvent
+				.getSource();
+		if (lsm.isSelectionEmpty()) {// Pas de lignes selectionné - On affiche
+										// un ?
+
+		} else {// ligne selectionné - on affiche l'image de la miniature
+			int selectedRow = lsm.getMinSelectionIndex();
+			String chemin = (String) table.getValueAt(selectedRow, 6);
+			icon = new ImageIcon(chemin);
+			icon = new ImageIcon(icon.getImage().getScaledInstance(200, 200,
+					Image.SCALE_DEFAULT));
+			remove(miniature);
+			miniature = new JLabel(icon);
+			setConstraints(3, 0, 1, 1);
+			cons.anchor=GridBagConstraints.NORTH;
+			add(miniature, cons);
+			revalidate();
+		}
+	}
+
 }
