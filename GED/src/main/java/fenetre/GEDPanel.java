@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -20,6 +21,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -62,7 +65,8 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 	private List<Document> docs;
 	ImageIcon icon;
 	JLabel miniature;
-	JLabel texte;
+	JTextField texte;
+	JScrollPane textContainer;
 
 	/**
 	 * Constructeur du panel
@@ -82,22 +86,29 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		JScrollPane scrollPane = new JScrollPane(table);// Permet de scroller si
 														// la table est trop
 														// grande
-
+		
 		/* Ajout des éléments au panel*/
-		setConstraints(0, 0, 1, 1);
+		cons.insets=new Insets(2,2,2,2);
+		
+		setConstraints(0, 0, 1, 2);
 		add(browser, cons);
-		setConstraints(1, 0, 1, 1);
+		setConstraints(1, 0, 1, 2);
 		add(scrollPane, cons);
 		//miniature
 		setConstraints(2, 0, 1, 1);
 		
 		icon = new ImageIcon("images\\unknow.jpg");
-		icon = new ImageIcon(icon.getImage().getScaledInstance(200, 200,
+		icon = new ImageIcon(icon.getImage().getScaledInstance(300, 300*icon.getIconHeight()/icon.getIconWidth(),
 				Image.SCALE_DEFAULT));
 		miniature = new JLabel(icon);
 		cons.anchor=GridBagConstraints.NORTH;
 		add(miniature, cons);
-		
+		//Texte sous miniature
+		setConstraints(2,1,1,1);
+		cons.fill=GridBagConstraints.BOTH;
+		texte = new JTextField("Schroom");
+		textContainer = new JScrollPane(texte);
+		add(textContainer,cons);
 		
 	}
 
@@ -180,11 +191,12 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 			int selectedRow = lsm.getMinSelectionIndex();
 			String chemin = (String) table.getValueAt(selectedRow, 6);
 			icon = new ImageIcon(chemin);
-			icon = new ImageIcon(icon.getImage().getScaledInstance(200, 200,
+			icon = new ImageIcon(icon.getImage().getScaledInstance(300, 300*icon.getIconHeight()/icon.getIconWidth(),
 					Image.SCALE_DEFAULT));
 			remove(miniature);
+			repaint();
 			miniature = new JLabel(icon);
-			setConstraints(3, 0, 1, 1);
+			setConstraints(2, 0, 1, 1);
 			cons.anchor=GridBagConstraints.NORTH;
 			add(miniature, cons);
 			revalidate();
