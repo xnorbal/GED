@@ -16,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import donnees.Document;
+import donnees.SQLConnector;
 
 public class DetailPanel extends JPanel {
 	private Document d;
@@ -29,39 +30,9 @@ public class DetailPanel extends JPanel {
 	}
 	
 	public DetailPanel(int id) {
-		Connection conn = null;
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			conn = DriverManager.getConnection("jdbc:mysql://localhost/ged",
-					"root", "");
-			// Extraction des données
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT * FROM IMAGE WHERE I_ID="
-					+ id);
-			while (rs.next()) {
-				d = new Document(rs.getInt("I_ID"), rs.getDate("I_DATE"),
-						rs.getInt("SIZE"), rs.getString("NOM"),
-						rs.getString("CHEMIN"), rs.getInt("WIDTH"),
-						rs.getInt("HEIGHT"), rs.getInt("NOTE"));
-			}
-			rs = stmt
-					.executeQuery("SELECT NOM FROM IMTAG I, TAG T WHERE I.T_ID=T.T_ID AND I.I_ID="
-							+ id);
-			while (rs.next()) {
-				d.addTag(rs.getString("NOM"));
-			}
-			rs = stmt
-					.executeQuery("SELECT NOM FROM IMSERIE I, SERIE S WHERE I.S_ID=S.S_ID AND I.I_ID="
-							+ id);
-			while (rs.next()) {
-				d.addTag(rs.getString("NOM"));
-			}
-			conn.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+		Connection conn = SQLConnector.enableConnexion();
+		d = SQLConnector.executeSelectDocument(conn, id);
+		SQLConnector.closeConnexion(conn);
 
 		labels = new JLabel[legendes.length];
 		details = new JLabel[legendes.length];

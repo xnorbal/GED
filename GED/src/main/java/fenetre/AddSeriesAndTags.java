@@ -1,5 +1,6 @@
 package fenetre;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
@@ -51,8 +52,8 @@ public class AddSeriesAndTags extends JFrame implements ActionListener{
 		label1 = new JLabel("Tags");
 		label2 = new JLabel("Séries");
 		
-		newTag = new JTextField(15);
-		newSerie = new JTextField(15);
+		newTag = new JTextField(10);
+		newSerie = new JTextField(10);
 		addTag = new JButton(new ImageIcon(new ImageIcon("images\\plus.png").getImage().getScaledInstance(15, 15, Image.SCALE_DEFAULT)));
 		addTag.addActionListener(this);
 		addSerie = new JButton(new ImageIcon(new ImageIcon("images\\plus.png").getImage().getScaledInstance(15, 15, Image.SCALE_DEFAULT)));
@@ -64,7 +65,9 @@ public class AddSeriesAndTags extends JFrame implements ActionListener{
 		updateTables();
 		
 		JScrollPane pane1 = new JScrollPane(tags);
+		pane1.setPreferredSize(new Dimension(220, 300));
 		JScrollPane pane2 = new JScrollPane(series);
+		pane2.setPreferredSize(new Dimension(220, 300));
 		
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());

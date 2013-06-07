@@ -7,6 +7,8 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
@@ -23,6 +25,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 
 import donnees.Document;
+import donnees.SQLConnector;
 
 public class EditImageFrame extends JFrame implements ActionListener {
 
@@ -39,10 +42,14 @@ public class EditImageFrame extends JFrame implements ActionListener {
 	private DefaultListModel modelTagsAppliques;
 	private JList seriesAppliques;
 	private DefaultListModel modelSeriesAppliques;
+	private GEDPanel gedPanel;
+	private int row;
 
-	public EditImageFrame(String parTitre, Document parDoc) {
+	public EditImageFrame(String parTitre, Document parDoc, GEDPanel gedPanel, int row) {
 		super(parTitre);// appel au constructeur de la classe mère
 		this.doc = parDoc;
+		this.gedPanel=gedPanel;
+		this.row=row;
 
 		setLocation(100, 100);// place la fenêtre à 100 px du bord haut de
 		// l'écran, et 100 px du bord droit
@@ -76,18 +83,18 @@ public class EditImageFrame extends JFrame implements ActionListener {
 		/* Combo Box des Tags */
 		DefaultComboBoxModel comboModel = new DefaultComboBoxModel();
 
-		String listTags = doc.getTags();
-
 		contraintes.gridx = 3;
 		contraintes.gridheight = 1;
 		contraintes.anchor = GridBagConstraints.CENTER;
 
-		if (listTags.equals("")) {
+		Connection conn = SQLConnector.enableConnexion();
+		List<String> tags = SQLConnector.selectTags(conn);
+
+		if (tags.size() == 0) {
 			comboModel.addElement("Aucun tag");
 		} else {
-			String[] tags = listTags.split("\n");
-			for (int i = 0; i < tags.length; i++) {
-				comboModel.addElement(tags[i]);
+			for (String s : tags) {
+				comboModel.addElement(s);
 			}
 		}
 		choixTag = new JComboBox(comboModel);
@@ -110,17 +117,17 @@ public class EditImageFrame extends JFrame implements ActionListener {
 		/* Combo Box des Séries */
 		comboModel = new DefaultComboBoxModel();
 
-		String listSeries = doc.getSeries();
-
 		contraintes.gridx = 3;
 		contraintes.anchor = GridBagConstraints.CENTER;
 
-		if (listSeries.equals("")) {
+		List<String> series = SQLConnector.selectSeries(conn);
+		SQLConnector.closeConnexion(conn);
+		
+		if (series.size() == 0) {
 			comboModel.addElement("Aucune série");
 		} else {
-			String[] series = listSeries.split("\n");
-			for (int i = 0; i < series.length; i++) {
-				comboModel.addElement(series[i]);
+			for (String s : series) {
+				comboModel.addElement(s);
 			}
 		}
 		choixSerie = new JComboBox(comboModel);
@@ -186,10 +193,10 @@ public class EditImageFrame extends JFrame implements ActionListener {
 		listScroller.setPreferredSize(new Dimension(100, 80));
 
 		String listeTags = doc.getTags();
-		String[] tags = listeTags.split("\n");
+		String[] docTags = listeTags.split("\n");
 
-		for (int i = 0; i < tags.length; i++) {
-			modelTagsAppliques.addElement(tags[i]);
+		for (int i = 0; i < docTags.length; i++) {
+			modelTagsAppliques.addElement(docTags[i]);
 		}
 
 		contraintes.gridwidth = 1;
@@ -209,10 +216,10 @@ public class EditImageFrame extends JFrame implements ActionListener {
 		listScroller.setPreferredSize(new Dimension(100, 80));
 
 		String listeSeries = doc.getSeries();
-		String[] series = listeSeries.split("\n");
+		String[] docSeries = listeSeries.split("\n");
 
-		for (int i = 0; i < series.length; i++) {
-			modelSeriesAppliques.addElement(series[i]);
+		for (int i = 0; i < docSeries.length; i++) {
+			modelSeriesAppliques.addElement(docSeries[i]);
 		}
 
 		contraintes.gridwidth = 1;
@@ -247,11 +254,59 @@ public class EditImageFrame extends JFrame implements ActionListener {
 		if (arg0.getSource() instanceof JButton) {
 			JButton button = (JButton) arg0.getSource();
 			if (button == addTag && choixTag.getSelectedItem() != "Aucun tag") {
-				modelTagsAppliques.addElement(choixTag.getSelectedItem());
+				if (!modelTagsAppliques.contains(choixTag.getSelectedItem())) {
+					modelTagsAppliques.addElement(choixTag.getSelectedItem());
+					doc.addTag((String)choixTag.getSelectedItem());
+				}
 			} else if (button == addSerie
 					&& choixSerie.getSelectedItem() != "Aucune série") {
-				modelSeriesAppliques.addElement(choixSerie.getSelectedItem());
+				if (!modelSeriesAppliques
+						.contains(choixSerie.getSelectedItem())) {
+					modelSeriesAppliques.addElement(choixSerie
+							.getSelectedItem());
+					doc.addSerie((String)choixSerie.getSelectedItem());
+				}
 			} else if (button == annuler) {
+				this.dispose();
+			} else if (button == enregistrer) {
+				String requete = new String("");
+				Connection conn = SQLConnector.enableConnexion();
+				requete += "UPDATE IMAGE SET NOTE=";
+				String noteSurCinq = (String) note.getSelectedItem();
+				requete += noteSurCinq.charAt(0);
+				requete += ", DESCRIPTION=\"";
+				requete += description.getText() + "\"";
+				requete += " WHERE I_ID=" + doc.getId();
+				System.out.println(requete);
+				SQLConnector.executeUpdateInsert(conn, requete);
+				// Insérer les tags et séries
+				String listTags = doc.getTags();
+
+				if (!listTags.equals("")) {
+					String[] tags = listTags.split("\n");
+					for (int i = 0; i < tags.length; i++) {
+						int idTag = SQLConnector.getTagIdByName(conn, tags[i]);
+						requete = "INSERT INTO IMTAG VALUES(" + doc.getId()
+								+ "," + idTag + ")";
+						SQLConnector.executeUpdateInsert(conn, requete);
+					}
+				}
+
+				String listSeries = doc.getSeries();
+				if (!listSeries.equals("")) {
+					String[] series = listSeries.split("\n");
+					for (int i = 0; i < series.length; i++) {
+						int idSerie = SQLConnector.getSerieIdByName(conn,
+								series[i]);
+						requete = "INSERT INTO IMSERIE VALUES(" + doc.getId()
+								+ "," + idSerie + ")";
+						SQLConnector.executeUpdateInsert(conn, requete);
+					}
+				}
+
+				SQLConnector.closeConnexion(conn);
+				gedPanel.updateTable();
+				gedPanel.updateDetails(row);
 				this.dispose();
 			}
 		}

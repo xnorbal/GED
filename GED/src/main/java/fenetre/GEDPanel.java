@@ -28,6 +28,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import donnees.Document;
+import donnees.SQLConnector;
 
 import table.TableBibliothequeModel;
 
@@ -96,7 +97,7 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		// miniature
 		setConstraints(2, 0, 1, 1);
 
-		icon = new ImageIcon("images\\unknow.jpg");
+		icon = new ImageIcon("images\\GED.gif");
 		icon = new ImageIcon(icon.getImage().getScaledInstance(250,
 				250 * icon.getIconHeight() / icon.getIconWidth(),
 				Image.SCALE_DEFAULT));
@@ -104,12 +105,13 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		cons.anchor = GridBagConstraints.NORTH;
 		add(miniature, cons);
 		setConstraints(2, 1, 1, 1);
-		detailPanel=new DetailPanel();
+		detailPanel = new DetailPanel();
 		add(detailPanel, cons);
 		// Texte sous miniature
 		setConstraints(2, 2, 1, 1);
 		cons.fill = GridBagConstraints.BOTH;
 		texte = new JTextField("");
+		texte.setEditable(false);
 		add(texte, cons);
 		repaint();
 	}
@@ -138,36 +140,19 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 	}
 
 	public void updateTable() {
-		docs = new ArrayList<Document>();
-		// Connection à la BD
-		Connection conn = null;
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			System.out.println("driver OK");
-			conn = DriverManager.getConnection("jdbc:mysql://localhost/ged",
-					"root", "");
-			System.out.println("connection OK");
-			// Extraction des données
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery("SELECT * FROM IMAGE");
-			while (rs.next()) {
-				docs.add(new Document(rs.getInt("I_ID"), rs.getDate("I_DATE"),
-						rs.getInt("SIZE"), rs.getString("NOM"), rs
-								.getString("CHEMIN"), rs.getInt("WIDTH"), rs
-								.getInt("HEIGHT"), rs.getInt("NOTE")));
-			}
-			conn.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
+		Connection conn = SQLConnector.enableConnexion();
+		docs = SQLConnector.executeSelectDocuments(conn);
+		SQLConnector.closeConnexion(conn);
 
 		data = new String[docs.size()][colNames.length];
 		for (int i = 0; i < docs.size(); i++) {
 			data[i][0] = Integer.toString(docs.get(i).getId());
 			data[i][1] = docs.get(i).getTitle();
-			data[i][2] = Integer.toString(docs.get(i).getNote()) + "/5";
+			if (docs.get(i).getNote() == 0) {
+				data[i][2] = "pas de note";
+			} else {
+				data[i][2] = Integer.toString(docs.get(i).getNote()) + "/5";
+			}
 			data[i][3] = docs.get(i).getPath();
 		}
 		TableBibliothequeModel model = new TableBibliothequeModel(data,
@@ -190,22 +175,33 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 			int selectedRow = lsm.getMinSelectionIndex();
 			String chemin = (String) table.getValueAt(selectedRow, 3);
 			icon = new ImageIcon(chemin);
-			icon = new ImageIcon(icon.getImage().getScaledInstance(250,
-					250 * icon.getIconHeight() / icon.getIconWidth(),
-					Image.SCALE_DEFAULT));
-			remove(miniature);
-			remove(detailPanel);
-			miniature = new JLabel(icon);
-			setConstraints(2, 0, 1, 1);
-			cons.anchor = GridBagConstraints.NORTH;
-			add(miniature, cons);
-			setConstraints(2, 1, 1, 1);
-			detailPanel=new DetailPanel(Integer.parseInt((String)table.getValueAt(selectedRow, 0)));
-			add(detailPanel, cons);
-			texte.setText(detailPanel.getDocument().getDesc());
-			repaint();
-			revalidate();
+			if(icon.getIconHeight()<icon.getIconWidth()){
+				icon = new ImageIcon(icon.getImage().getScaledInstance(250,
+						250 * icon.getIconHeight() / icon.getIconWidth(),
+						Image.SCALE_DEFAULT));
+			}
+			else{
+				icon = new ImageIcon(icon.getImage().getScaledInstance(250 * icon.getIconWidth() / icon.getIconHeight(),
+						250,
+						Image.SCALE_DEFAULT));
+			}			
+			updateDetails(selectedRow);
 		}
 	}
-
+	
+	public void updateDetails(int selectedRow){
+		remove(miniature);
+		remove(detailPanel);
+		miniature = new JLabel(icon);
+		setConstraints(2, 0, 1, 1);
+		cons.anchor = GridBagConstraints.NORTH;
+		add(miniature, cons);
+		setConstraints(2, 1, 1, 1);
+		detailPanel = new DetailPanel(Integer.parseInt((String) table
+				.getValueAt(selectedRow, 0)));
+		add(detailPanel, cons);
+		texte.setText(detailPanel.getDocument().getDesc());
+		repaint();
+		revalidate();
+	}
 }
