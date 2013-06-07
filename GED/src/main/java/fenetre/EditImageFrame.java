@@ -8,6 +8,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
@@ -44,12 +45,15 @@ public class EditImageFrame extends JFrame implements ActionListener {
 	private DefaultListModel modelSeriesAppliques;
 	private GEDPanel gedPanel;
 	private int row;
+	private List<String> tagsAjoutes;
+	private List<String> seriesAjoutes;
 
-	public EditImageFrame(String parTitre, Document parDoc, GEDPanel gedPanel, int row) {
+	public EditImageFrame(String parTitre, Document parDoc, GEDPanel gedPanel,
+			int row) {
 		super(parTitre);// appel au constructeur de la classe mère
 		this.doc = parDoc;
-		this.gedPanel=gedPanel;
-		this.row=row;
+		this.gedPanel = gedPanel;
+		this.row = row;
 
 		setLocation(100, 100);// place la fenêtre à 100 px du bord haut de
 		// l'écran, et 100 px du bord droit
@@ -122,7 +126,7 @@ public class EditImageFrame extends JFrame implements ActionListener {
 
 		List<String> series = SQLConnector.selectSeries(conn);
 		SQLConnector.closeConnexion(conn);
-		
+
 		if (series.size() == 0) {
 			comboModel.addElement("Aucune série");
 		} else {
@@ -144,10 +148,16 @@ public class EditImageFrame extends JFrame implements ActionListener {
 		/* Combo Box de la note */
 		comboModel = new DefaultComboBoxModel();
 		for (int i = 0; i < 6; i++) {
-			comboModel.addElement(i + " / 5");
+			if (i == 0) {
+				comboModel.addElement("pas de note");
+			} else {
+				comboModel.addElement(i);
+			}
 		}
 		note = new JComboBox(comboModel);
 		note.setPreferredSize(new Dimension(100, 20));
+		note.getModel().setSelectedItem(
+				note.getModel().getElementAt(doc.getNote()));
 		((JLabel) note.getRenderer())
 				.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -166,7 +176,7 @@ public class EditImageFrame extends JFrame implements ActionListener {
 		contraintes.anchor = GridBagConstraints.SOUTHWEST;
 		modifPanel.add(new JLabel("Description:"), contraintes);
 
-		description = new JTextArea();
+		description = new JTextArea(doc.getDesc());
 		description.setRows(5);
 		description.setColumns(25);
 		JScrollPane zoneScrollable = new JScrollPane(description,
@@ -244,6 +254,9 @@ public class EditImageFrame extends JFrame implements ActionListener {
 		contraintes.gridx = 4;
 		modifPanel.add(annuler, contraintes);
 
+		tagsAjoutes = new ArrayList<String>();
+		seriesAjoutes = new ArrayList<String>();
+
 		setContentPane(modifPanel);
 		pack();
 		setVisible(true);
@@ -256,7 +269,8 @@ public class EditImageFrame extends JFrame implements ActionListener {
 			if (button == addTag && choixTag.getSelectedItem() != "Aucun tag") {
 				if (!modelTagsAppliques.contains(choixTag.getSelectedItem())) {
 					modelTagsAppliques.addElement(choixTag.getSelectedItem());
-					doc.addTag((String)choixTag.getSelectedItem());
+					doc.addTag((String) choixTag.getSelectedItem());
+					tagsAjoutes.add((String) choixTag.getSelectedItem());
 				}
 			} else if (button == addSerie
 					&& choixSerie.getSelectedItem() != "Aucune série") {
@@ -264,7 +278,8 @@ public class EditImageFrame extends JFrame implements ActionListener {
 						.contains(choixSerie.getSelectedItem())) {
 					modelSeriesAppliques.addElement(choixSerie
 							.getSelectedItem());
-					doc.addSerie((String)choixSerie.getSelectedItem());
+					doc.addSerie((String) choixSerie.getSelectedItem());
+					seriesAjoutes.add((String) choixSerie.getSelectedItem());
 				}
 			} else if (button == annuler) {
 				this.dispose();
@@ -272,8 +287,7 @@ public class EditImageFrame extends JFrame implements ActionListener {
 				String requete = new String("");
 				Connection conn = SQLConnector.enableConnexion();
 				requete += "UPDATE IMAGE SET NOTE=";
-				String noteSurCinq = (String) note.getSelectedItem();
-				requete += noteSurCinq.charAt(0);
+				requete += note.getSelectedIndex();
 				requete += ", DESCRIPTION=\"";
 				requete += description.getText() + "\"";
 				requete += " WHERE I_ID=" + doc.getId();
@@ -285,10 +299,13 @@ public class EditImageFrame extends JFrame implements ActionListener {
 				if (!listTags.equals("")) {
 					String[] tags = listTags.split("\n");
 					for (int i = 0; i < tags.length; i++) {
-						int idTag = SQLConnector.getTagIdByName(conn, tags[i]);
-						requete = "INSERT INTO IMTAG VALUES(" + doc.getId()
-								+ "," + idTag + ")";
-						SQLConnector.executeUpdateInsert(conn, requete);
+						if (tagsAjoutes.contains(tags[i])) {
+							int idTag = SQLConnector.getTagIdByName(conn,
+									tags[i]);
+							requete = "INSERT INTO IMTAG VALUES(" + doc.getId()
+									+ "," + idTag + ")";
+							SQLConnector.executeUpdateInsert(conn, requete);
+						}
 					}
 				}
 
@@ -296,11 +313,13 @@ public class EditImageFrame extends JFrame implements ActionListener {
 				if (!listSeries.equals("")) {
 					String[] series = listSeries.split("\n");
 					for (int i = 0; i < series.length; i++) {
-						int idSerie = SQLConnector.getSerieIdByName(conn,
-								series[i]);
-						requete = "INSERT INTO IMSERIE VALUES(" + doc.getId()
-								+ "," + idSerie + ")";
-						SQLConnector.executeUpdateInsert(conn, requete);
+						if (seriesAjoutes.contains(series[i])) {
+							int idSerie = SQLConnector.getSerieIdByName(conn,
+									series[i]);
+							requete = "INSERT INTO IMSERIE VALUES("
+									+ doc.getId() + "," + idSerie + ")";
+							SQLConnector.executeUpdateInsert(conn, requete);
+						}
 					}
 				}
 
