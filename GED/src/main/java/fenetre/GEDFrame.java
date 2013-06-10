@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -24,6 +25,7 @@ import javax.swing.JSeparator;
 
 import donnees.Document;
 import donnees.FiltreImage;
+import donnees.FlickrUpload;
 import donnees.SQLConnector;
 
 /**
@@ -58,6 +60,14 @@ public class GEDFrame extends JFrame implements ActionListener {
 	 */
 	private JButton ajoutFav;
 	/**
+	 * Bouton permettant de poster l'image sur Flickr
+	 */
+	private JButton flickr;
+	/**
+	 * Bouton permettant de modifier ses options
+	 */
+	private JButton parametres;
+	/**
 	 * Panel de la JFrame
 	 */
 	private GEDPanel myGED;
@@ -89,6 +99,10 @@ public class GEDFrame extends JFrame implements ActionListener {
 		editer.setToolTipText("Editer les données de l'image");
 		ajoutFav = new JButton("", new ImageIcon("images\\ajout_fav.png"));
 		ajoutFav.setToolTipText("Ajouter des tags et/ou séries");
+		flickr = new JButton("", new ImageIcon("images\\flickr.png"));
+		flickr.setToolTipText("Mettre son image sur Flickr");
+		parametres = new JButton("", new ImageIcon("images\\parametres.png"));
+		parametres.setToolTipText("Vos options");
 
 		ouvrir.addActionListener(this);
 		info.addActionListener(this);
@@ -96,6 +110,8 @@ public class GEDFrame extends JFrame implements ActionListener {
 		ajout.addActionListener(this);
 		ajoutFav.addActionListener(this);
 		editer.addActionListener(this);
+		flickr.addActionListener(this);
+		parametres.addActionListener(this);
 
 		// initialisation de la barre de menu
 		setJMenuBar(initAndSetMenuBar());
@@ -124,7 +140,9 @@ public class GEDFrame extends JFrame implements ActionListener {
 		menuBar.add(ouvrir);
 		menuBar.add(editer);
 		menuBar.add(ajoutFav);
+		menuBar.add(flickr);
 		menuBar.add(new JSeparator(JSeparator.VERTICAL));
+		menuBar.add(parametres);
 		menuBar.add(info);
 
 		return menuBar;
@@ -160,7 +178,6 @@ public class GEDFrame extends JFrame implements ActionListener {
 					fic.close();
 					JOptionPane.showMessageDialog(this, texte);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
@@ -193,6 +210,30 @@ public class GEDFrame extends JFrame implements ActionListener {
 			} else if (button == ajoutFav) {
 				new AddSeriesAndTags();
 				// Ouverture de la fenêtre d'ajout de series et tags
+			}
+			else if (button == parametres) {
+				new OptionsFrame();
+				// Ouverture de la fenêtre des options
+			}
+			else if (button == flickr) {
+				int row = myGED.getTable().getSelectedRow();
+				if (row >= 0) {
+					int id = Integer.parseInt((String) myGED.getTable()
+							.getValueAt(row, 0));
+					Connection conn = SQLConnector.enableConnexion();
+					Document d = SQLConnector.executeSelectDocument(conn, id);
+					String token = SQLConnector.getTokenAccount(conn);
+					SQLConnector.closeConnexion(conn);
+					if(!token.equals("")){
+						try {
+							FlickrUpload.uploadPhoto(token, d);
+						} catch (NoSuchAlgorithmException e) {
+							e.printStackTrace();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
 			}
 		}
 	}

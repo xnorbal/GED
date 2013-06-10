@@ -5,7 +5,11 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -21,7 +25,7 @@ import javax.swing.JTextField;
  * @author Xavier
  * 
  */
-public class TagBrowser extends JPanel {
+public class BrowserPanel extends JPanel implements ActionListener{
 	/**
 	 * Zone de recherche
 	 */
@@ -34,6 +38,10 @@ public class TagBrowser extends JPanel {
 	 * contraintes utilisées pour le placement des objets SWING
 	 */
 	private GridBagConstraints cons;
+	/**
+	 * Conteneur parent
+	 */
+	GEDPanel parent;
 
 	/**
 	 * 
@@ -49,7 +57,7 @@ public class TagBrowser extends JPanel {
 	/**
 	 * Constructeur du browser
 	 */
-	public TagBrowser() {
+	public BrowserPanel() {
 		// initialisation du Layout et des contraintes
 		setLayout(new BorderLayout());
 
@@ -71,10 +79,16 @@ public class TagBrowser extends JPanel {
 		add(textContainer, BorderLayout.CENTER);
 
 		// bouton tri
-		String[] listeItems = { "Trier par", "Tag", "Date", "Lieu" };
-		tri = new JComboBox(listeItems);
+		String[] listeItems = {"Date", "Lieu" };
+		DefaultComboBoxModel model = new DefaultComboBoxModel();
+		for (int i = 0;i<listeItems.length;i++) {
+			model.addElement(listeItems[i]);
+		}
+		tri = new JComboBox();
 		add(tri, BorderLayout.SOUTH);
 	}
+	
+	
 
 	/**
 	 * Initialise les contraintes de placement pour les éléments SWING
@@ -93,5 +107,13 @@ public class TagBrowser extends JPanel {
 		cons.gridy = y;
 		cons.gridwidth = w;
 		cons.gridheight = h;
+	}
+
+
+
+	public void actionPerformed(ActionEvent arg0) {
+		if(arg0.getSource() == rechercher){
+			
+		}
 	}
 }

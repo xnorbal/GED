@@ -23,6 +23,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -48,7 +49,7 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 	/**
 	 * TagBrowser permettant de rechercher les documents par "tag"
 	 */
-	private TagBrowser browser;
+	private BrowserPanel browser;
 	private DetailPanel detailPanel;
 	/**
 	 * Colonnes de la table
@@ -65,7 +66,7 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 	private List<Document> docs;
 	ImageIcon icon;
 	JLabel miniature;
-	JTextField texte;
+	JTextPane texte;
 	JScrollPane textContainer;
 
 	/**
@@ -76,7 +77,7 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		setLayout(new GridBagLayout());
 		cons = new GridBagConstraints();
 
-		browser = new TagBrowser();// initialisation du TagBrowser
+		browser = new BrowserPanel();// initialisation du TagBrowser
 
 		// Initialisation de la table
 		table = new JTable();
@@ -110,7 +111,9 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		// Texte sous miniature
 		setConstraints(2, 2, 1, 1);
 		cons.fill = GridBagConstraints.BOTH;
-		texte = new JTextField("");
+		texte = new JTextPane();
+		texte.setText("");
+		texte.setPreferredSize(getSize());
 		texte.setEditable(false);
 		add(texte, cons);
 		repaint();

@@ -151,6 +151,22 @@ public class SQLConnector {
 		}
 		return retour;
 	}
+	
+	public static String getTokenAccount(Connection conn) {
+		Statement stmt;
+		String retour = new String("");
+		try {
+			stmt = conn.createStatement();
+			ResultSet rs = stmt
+					.executeQuery("SELECT TOKEN FROM compte_flickr LIMIT 0,1");
+			while (rs.next()) {
+				retour = rs.getString("TOKEN");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return retour;
+	}
 
 	public static void closeConnexion(Connection c) {
 		try {

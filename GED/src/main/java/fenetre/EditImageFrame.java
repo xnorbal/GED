@@ -58,7 +58,6 @@ public class EditImageFrame extends JFrame implements ActionListener {
 		setLocation(100, 100);// place la fenêtre à 100 px du bord haut de
 		// l'écran, et 100 px du bord droit
 
-		setDefaultCloseOperation(EXIT_ON_CLOSE);// Pour kill le processus quand
 
 		// ajout du JPanel
 		JPanel modifPanel = new JPanel();

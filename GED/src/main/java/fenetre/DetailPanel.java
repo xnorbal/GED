@@ -23,7 +23,7 @@ public class DetailPanel extends JPanel {
 	private String[] legendes = { "largeur :", "hauteur :", "taille :", "tags :",
 			"séries :" };
 	private JLabel[] labels;
-	private JLabel[] details;
+	private JTextField[] details;
 	private GridBagConstraints cons;
 
 	public DetailPanel(){
@@ -35,10 +35,11 @@ public class DetailPanel extends JPanel {
 		SQLConnector.closeConnexion(conn);
 
 		labels = new JLabel[legendes.length];
-		details = new JLabel[legendes.length];
+		details = new JTextField[legendes.length];
 		for (int i = 0; i < legendes.length; i++) {
 			labels[i] = new JLabel(legendes[i]);
-			details[i] = new JLabel();
+			details[i] = new JTextField(15);
+			details[i].setEditable(false);
 		}
 		
 		details[0].setText(Integer.toString(d.getWidth())+ " px");
