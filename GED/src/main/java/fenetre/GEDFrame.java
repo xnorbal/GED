@@ -36,6 +36,10 @@ import donnees.SQLConnector;
  */
 public class GEDFrame extends JFrame implements ActionListener {
 	/**
+	 * Bouton pour afficher TOUS les documents de la bibiliothèque
+	 */
+	private JButton home;
+	/**
 	 * Bouton d'ajout d'un ou plusieurs fichiers à la GED
 	 */
 	private JButton ajout;
@@ -88,10 +92,12 @@ public class GEDFrame extends JFrame implements ActionListener {
 												// on ferme la fenêtre
 
 		// initialisation des trois boutons avec des images
+		home = new JButton("", new ImageIcon("images\\home.png"));
+		home.setToolTipText("Afficher tous les documents de la bibiliothèque");
 		ajout = new JButton("", new ImageIcon("images\\plus.png"));
-		ajout.setToolTipText("ajouter une/des image(s)");
+		ajout.setToolTipText("Ajouter une/des image(s)");
 		suppression = new JButton("", new ImageIcon("images\\supprimer.png"));
-		suppression.setToolTipText("supprimer une/des image(s)");
+		suppression.setToolTipText("Supprimer une/des image(s)");
 		info = new JButton("", new ImageIcon("images\\help.png"));
 		ouvrir = new JButton("", new ImageIcon("images\\ouvrir.png"));
 		ouvrir.setToolTipText("Ouvrir une image avec le programme par défaut");
@@ -104,6 +110,7 @@ public class GEDFrame extends JFrame implements ActionListener {
 		parametres = new JButton("", new ImageIcon("images\\parametres.png"));
 		parametres.setToolTipText("Vos options");
 
+		home.addActionListener(this);
 		ouvrir.addActionListener(this);
 		info.addActionListener(this);
 		suppression.addActionListener(this);
@@ -135,6 +142,8 @@ public class GEDFrame extends JFrame implements ActionListener {
 		JMenuBar menuBar = new JMenuBar();// initialisation de la JMenuBar
 
 		// Ajout des boutons
+		menuBar.add(home);
+		menuBar.add(new JSeparator(JSeparator.VERTICAL));
 		menuBar.add(ajout);
 		menuBar.add(suppression);
 		menuBar.add(ouvrir);
@@ -186,17 +195,24 @@ public class GEDFrame extends JFrame implements ActionListener {
 				if (row >= 0) {
 					int id = Integer.parseInt((String) myGED.getTable()
 							.getValueAt(row, 0));
-					String request;
-					Connection conn = SQLConnector.enableConnexion();
-					request = "DELETE FROM IMTAG " + "WHERE I_ID = " + id;
-					SQLConnector.executeUpdateInsert(conn, request);
-					request = "DELETE FROM IMSERIE " + "WHERE I_ID = " + id;
-					SQLConnector.executeUpdateInsert(conn, request);
-					request = "DELETE FROM IMAGE " + "WHERE I_ID = " + id;
-					SQLConnector.executeUpdateInsert(conn, request);
-					SQLConnector.closeConnexion(conn);
-					myGED.updateTable();
-					myGED.getBrowserPanel().updateTable();
+					if (JOptionPane
+							.showConfirmDialog(
+									this,
+									"Etes vous sûr de vouloir supprimer "
+											+ myGED.getTable().getValueAt(row,
+													1) + "?", "Attention", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION) {
+						String request;
+						Connection conn = SQLConnector.enableConnexion();
+						request = "DELETE FROM IMTAG " + "WHERE I_ID = " + id;
+						SQLConnector.executeUpdateInsert(conn, request);
+						request = "DELETE FROM IMSERIE " + "WHERE I_ID = " + id;
+						SQLConnector.executeUpdateInsert(conn, request);
+						request = "DELETE FROM IMAGE " + "WHERE I_ID = " + id;
+						SQLConnector.executeUpdateInsert(conn, request);
+						SQLConnector.closeConnexion(conn);
+						myGED.updateTable();
+						myGED.getBrowserPanel().updateTables();
+					}
 				}
 			} else if (button == editer) {
 				int row = myGED.getTable().getSelectedRow();
@@ -206,17 +222,16 @@ public class GEDFrame extends JFrame implements ActionListener {
 					Connection conn = SQLConnector.enableConnexion();
 					Document d = SQLConnector.executeSelectDocument(conn, id);
 					SQLConnector.closeConnexion(conn);
-					EditImageFrame myEditFrame = new EditImageFrame("", d, myGED, row);
+					EditImageFrame myEditFrame = new EditImageFrame("", d,
+							myGED, row);
 				}
 			} else if (button == ajoutFav) {
 				new AddSeriesAndTags(myGED);
 				// Ouverture de la fenêtre d'ajout de series et tags
-			}
-			else if (button == parametres) {
+			} else if (button == parametres) {
 				new OptionsFrame();
 				// Ouverture de la fenêtre des options
-			}
-			else if (button == flickr) {
+			} else if (button == flickr) {
 				int row = myGED.getTable().getSelectedRow();
 				if (row >= 0) {
 					int id = Integer.parseInt((String) myGED.getTable()
@@ -225,7 +240,7 @@ public class GEDFrame extends JFrame implements ActionListener {
 					Document d = SQLConnector.executeSelectDocument(conn, id);
 					String token = SQLConnector.getTokenAccount(conn);
 					SQLConnector.closeConnexion(conn);
-					if(!token.equals("")){
+					if (!token.equals("")) {
 						try {
 							FlickrUpload.uploadPhoto(token, d);
 						} catch (NoSuchAlgorithmException e) {
@@ -235,6 +250,8 @@ public class GEDFrame extends JFrame implements ActionListener {
 						}
 					}
 				}
+			} else if (button == home) {
+				myGED.updateTable();
 			}
 		}
 	}

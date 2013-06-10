@@ -78,6 +78,16 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		cons = new GridBagConstraints();
 
 		browser = new BrowserPanel(this);// initialisation du TagBrowser
+		
+		icon = new ImageIcon("images\\GED.gif");
+		icon = new ImageIcon(icon.getImage().getScaledInstance(250,
+				250 * icon.getIconHeight() / icon.getIconWidth(),
+				Image.SCALE_DEFAULT));
+		miniature = new JLabel(icon);//initialisation de la miniature
+		
+		detailPanel = new DetailPanel();//initialisation du panneau de détails
+		
+		texte = new JTextPane();//initialisation du panneau de texte de description
 
 		// Initialisation de la table
 		table = new JTable();
@@ -96,23 +106,16 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		add(browser, cons);
 		setConstraints(1, 0, 1, 3);
 		add(scrollPane, cons);
+		
 		// miniature
 		setConstraints(2, 0, 1, 1);
-
-		icon = new ImageIcon("images\\GED.gif");
-		icon = new ImageIcon(icon.getImage().getScaledInstance(250,
-				250 * icon.getIconHeight() / icon.getIconWidth(),
-				Image.SCALE_DEFAULT));
-		miniature = new JLabel(icon);
 		cons.anchor = GridBagConstraints.NORTH;
 		add(miniature, cons);
 		setConstraints(2, 1, 1, 1);
-		detailPanel = new DetailPanel();
 		add(detailPanel, cons);
 		// Texte sous miniature
 		setConstraints(2, 2, 1, 1);
 		cons.fill = GridBagConstraints.BOTH;
-		texte = new JTextPane();
 		texte.setText("");
 		texte.setPreferredSize(getSize());
 		texte.setEditable(false);
@@ -159,6 +162,23 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 				colNames);
 		table.setModel(model);
 		model.fireTableDataChanged();
+		
+		remove(miniature);
+		remove(detailPanel);
+		icon = new ImageIcon("images\\GED.gif");
+		icon = new ImageIcon(icon.getImage().getScaledInstance(250,
+				250 * icon.getIconHeight() / icon.getIconWidth(),
+				Image.SCALE_DEFAULT));
+		miniature = new JLabel(icon);
+		setConstraints(2, 0, 1, 1);
+		cons.anchor = GridBagConstraints.NORTH;
+		add(miniature, cons);
+		setConstraints(2, 1, 1, 1);
+		detailPanel = new DetailPanel();
+		add(detailPanel, cons);
+		texte.setText("");
+		repaint();
+		revalidate();
 	}
 
 	public void updateTable() {
@@ -180,6 +200,14 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 	public void updateForTags(String tag) {
 		Connection conn = SQLConnector.enableConnexion();
 		docs = SQLConnector.getDocumentsByTag(tag, conn);
+		SQLConnector.closeConnexion(conn);
+
+		DisplayContent();		
+	}
+	
+	public void updateForSeries(String serie) {
+		Connection conn = SQLConnector.enableConnexion();
+		docs = SQLConnector.getDocumentsBySerie(serie, conn);
 		SQLConnector.closeConnexion(conn);
 
 		DisplayContent();		

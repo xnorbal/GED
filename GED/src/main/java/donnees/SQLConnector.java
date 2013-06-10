@@ -176,7 +176,14 @@ public class SQLConnector {
 			if(col.equals("Date")){
 				col = "I_DATE";
 			}
-			ResultSet rs = stmt.executeQuery("SELECT * FROM IMAGE WHERE "+col+"=\""+criteria+"\"");
+			String requete=new String("");
+			if(col == "Nom"){
+				requete = "SELECT * FROM IMAGE WHERE "+col+" LIKE \"%"+criteria+"%\"";
+			}
+			else{
+				requete = "SELECT * FROM IMAGE WHERE "+col+"=\""+criteria+"\"";
+			}
+			ResultSet rs = stmt.executeQuery(requete);
 			while (rs.next()) {
 				resultat.add(new Document(rs.getInt("I_ID"), rs
 						.getDate("I_DATE"), rs.getInt("SIZE"), rs
@@ -200,6 +207,25 @@ public class SQLConnector {
 			rs.next();
 			tagId=rs.getInt(1);
 			rs = stmt.executeQuery("SELECT COUNT(T_ID) FROM IMTAG WHERE T_ID="+tagId+" GROUP BY T_ID");
+			if(rs.next()){
+				res = rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+	
+	public static int getNumberOfImagesBySeries(String serieName, Connection conn){
+		Statement stmt;
+		int res=0;
+		try {
+			stmt = conn.createStatement();
+			int serieId;
+			ResultSet rs = stmt.executeQuery("SELECT S_ID FROM SERIE WHERE NOM=\""+serieName+"\"");
+			rs.next();
+			serieId=rs.getInt(1);
+			rs = stmt.executeQuery("SELECT COUNT(S_ID) FROM IMSERIE WHERE S_ID="+serieId+" GROUP BY S_ID");
 			if(rs.next()){
 				res = rs.getInt(1);
 			}
@@ -238,6 +264,30 @@ public class SQLConnector {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static List<Document> getDocumentsBySerie(String serie,
+			Connection conn) {
+		Statement stmt;
+		List<Document> resultat = new ArrayList<Document>();
+		try {
+			stmt = conn.createStatement();
+			int serieId;
+			ResultSet rs = stmt.executeQuery("SELECT S_ID FROM SERIE WHERE NOM=\""+serie+"\"");
+			rs.next();
+			serieId=rs.getInt(1);
+			rs = stmt.executeQuery("SELECT * FROM IMAGE D WHERE EXISTS(SELECT * FROM IMSERIE I WHERE I.I_ID = D.I_ID AND S_ID="+serieId+")");
+			while (rs.next()) {
+				resultat.add(new Document(rs.getInt("I_ID"), rs
+						.getDate("I_DATE"), rs.getInt("SIZE"), rs
+						.getString("NOM"), rs.getString("CHEMIN"), rs
+						.getInt("WIDTH"), rs.getInt("HEIGHT"), rs
+						.getInt("NOTE"), rs.getString("DESCRIPTION")));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return resultat;
 	}
 
 }

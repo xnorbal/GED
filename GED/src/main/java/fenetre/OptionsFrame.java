@@ -27,6 +27,7 @@ public class OptionsFrame extends JFrame implements ActionListener{
 	
 	private JButton lienAuth;
 	private JButton lierCompte;
+	private JButton delierCompte;
 	private FlickrAuth compte;
 	private int autorizeBefore;
 	
@@ -54,7 +55,7 @@ public class OptionsFrame extends JFrame implements ActionListener{
 
 		JLabel instructions = new JLabel();
 		instructions.setText("<html>Pour poster vos images sur Flickr, vous devez autoriser l'application à accéder à votre compte Flickr.<br/>"
-		+"Pour cela, connecter vous à votre compte Flickr via votre navigateur puis cliquez sur le bouton suivant:</html>");
+		+"Pour cela, connectez vous à votre compte Flickr via votre navigateur en cliquant sur le bouton suivant:</html>");
 		
 		optionsPanel.add(instructions, contraintes);
 		
@@ -71,6 +72,11 @@ public class OptionsFrame extends JFrame implements ActionListener{
 		lierCompte.addActionListener(this);
 		contraintes.gridy = 4;
 		optionsPanel.add(lierCompte, contraintes);
+		
+		delierCompte = new JButton("Annuler la liaison avec votre compte Flickr");
+		delierCompte.addActionListener(this);
+		contraintes.gridy = 5;
+		optionsPanel.add(delierCompte, contraintes);
 		
 		setContentPane(optionsPanel);
 		pack();
@@ -109,6 +115,11 @@ public class OptionsFrame extends JFrame implements ActionListener{
 					token = "Erreur";
 				}
 			}
+		}else if(e.getSource()==delierCompte){
+			Connection conn = SQLConnector.enableConnexion();
+			SQLConnector.executeUpdateInsert(conn, "DELETE FROM COMPTE_FLICKR");
+			SQLConnector.closeConnexion(conn);
+			dispose();
 		}
 		
 	}

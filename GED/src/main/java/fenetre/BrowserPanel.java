@@ -34,7 +34,8 @@ import donnees.SQLConnector;
  * @author Xavier
  * 
  */
-public class BrowserPanel extends JPanel implements ActionListener, ListSelectionListener {
+public class BrowserPanel extends JPanel implements ActionListener,
+		ListSelectionListener {
 	/**
 	 * Zone de recherche
 	 */
@@ -52,10 +53,16 @@ public class BrowserPanel extends JPanel implements ActionListener, ListSelectio
 	 */
 	GEDPanel parent;
 
+	String[] colNames1 = { "tags" };
+	String[] colNames2 = { "series" };
+
 	String[][] tagList;
-	String[] colNames = { "tags" };
 	List<String> tags;
 	JTable tagTable;
+
+	String[][] serieList;
+	List<String> series;
+	JTable serieTable;
 
 	/**
 	 * 
@@ -99,11 +106,28 @@ public class BrowserPanel extends JPanel implements ActionListener, ListSelectio
 		// table de tags
 		tagTable = new JTable();
 		tagTable.getSelectionModel().addListSelectionListener(this);
-		updateTable();
-		JScrollPane scrollPane = new JScrollPane(tagTable);
-		scrollPane.setPreferredSize(getSize());
+
+		// table de series
+		serieTable = new JTable();
+		serieTable.getSelectionModel().addListSelectionListener(this);
+
+		updateTables();
+
 		setConstraints(0, 2, 2, 1);
+		add(tagTable.getTableHeader(), cons);
+		
+		JScrollPane scrollPane1 = new JScrollPane(tagTable);
+		scrollPane1.setPreferredSize(getSize());
+		setConstraints(0, 3, 2, 1);
 		add(tagTable, cons);
+
+		setConstraints(0, 4, 2, 1);
+		add(serieTable.getTableHeader(), cons);
+		
+		JScrollPane scrollPane2 = new JScrollPane(serieTable);
+		scrollPane2.setPreferredSize(getSize());
+		setConstraints(0, 5, 2, 1);
+		add(serieTable, cons);
 	}
 
 	/**
@@ -125,26 +149,41 @@ public class BrowserPanel extends JPanel implements ActionListener, ListSelectio
 		cons.gridheight = h;
 	}
 
-	public void updateTable() {
+	public void updateTables() {
 		Connection conn = SQLConnector.enableConnexion();
 		tags = SQLConnector.selectTags(conn);
 
-		tagList = new String[tags.size()][colNames.length];
+		tagList = new String[tags.size()][colNames1.length];
 		for (int i = 0; i < tags.size(); i++) {
 			tagList[i][0] = tags.get(i) + " ("
 					+ SQLConnector.getNumberOfImagesByTags(tags.get(i), conn)
 					+ ")";
 		}
-		TableBibliothequeModel model = new TableBibliothequeModel(tagList,
-				colNames);
+		TableBibliothequeModel model1 = new TableBibliothequeModel(tagList,
+				colNames1);
 
-		tagTable.setModel(model);
-		model.fireTableDataChanged();
+		tagTable.setModel(model1);
+
+		series = SQLConnector.selectSeries(conn);
+
+		serieList = new String[series.size()][colNames2.length];
+		for (int i = 0; i < series.size(); i++) {
+			serieList[i][0] = series.get(i)
+					+ " ("
+					+ SQLConnector.getNumberOfImagesBySeries(series.get(i),
+							conn) + ")";
+		}
+		TableBibliothequeModel model2 = new TableBibliothequeModel(serieList,
+				colNames2);
+
+		serieTable.setModel(model2);
+
+		model1.fireTableDataChanged();
+		model2.fireTableDataChanged();
 	}
 
 	public void actionPerformed(ActionEvent arg0) {
 		if (arg0.getSource() == rechercher) {
-			System.out.println(tri.getModel().getSelectedItem().toString());
 			parent.updateForResearch(tri.getModel().getSelectedItem()
 					.toString(), critere.getText());
 		}
@@ -152,9 +191,20 @@ public class BrowserPanel extends JPanel implements ActionListener, ListSelectio
 
 	public void valueChanged(ListSelectionEvent e) {
 		ListSelectionModel lsm = (ListSelectionModel) e.getSource();
-		if (!lsm.isSelectionEmpty()) {
-			int selectedRow = lsm.getMinSelectionIndex();
-			parent.updateForTags(tags.get(selectedRow));
+		if (lsm == tagTable.getSelectionModel()) {
+			if (!lsm.isSelectionEmpty()) {
+				int selectedRow = lsm.getMinSelectionIndex();
+				parent.updateForTags(tags.get(selectedRow));
+			}
+		} else if (lsm == serieTable.getSelectionModel()) {
+			if (!lsm.isSelectionEmpty()) {
+				int selectedRow = lsm.getMinSelectionIndex();
+				parent.updateForSeries(series.get(selectedRow));
+			}
 		}
+	}
+
+	public JTable getTable() {
+		return tagTable;
 	}
 }

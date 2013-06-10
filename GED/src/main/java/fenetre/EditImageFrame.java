@@ -324,8 +324,7 @@ public class EditImageFrame extends JFrame implements ActionListener {
 
 				SQLConnector.closeConnexion(conn);
 				gedPanel.updateTable();
-				gedPanel.updateDetails(row);
-				gedPanel.getBrowserPanel().updateTable();
+				gedPanel.getBrowserPanel().updateTables();
 				this.dispose();
 			}
 		}

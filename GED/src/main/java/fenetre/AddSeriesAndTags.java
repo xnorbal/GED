@@ -143,7 +143,7 @@ public class AddSeriesAndTags extends JFrame implements ActionListener{
 		
 		if(e.getSource() instanceof JButton){
 			updateTables();
-			parent.getBrowserPanel().updateTable();
+			parent.getBrowserPanel().updateTables();
 		}
 	}
 	
