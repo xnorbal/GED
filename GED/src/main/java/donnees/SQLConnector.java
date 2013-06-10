@@ -38,7 +38,7 @@ public class SQLConnector {
 		return (retour);
 	}
 
-	public static ArrayList<Document> executeSelectDocuments(Connection conn) {
+	public static List<Document> executeSelectDocuments(Connection conn) {
 		Statement stmt;
 		List<Document> resultat = new ArrayList<Document>();
 		try {
@@ -54,7 +54,7 @@ public class SQLConnector {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return (ArrayList<Document>) (resultat);
+		return resultat;
 	}
 
 	public static Document executeSelectDocument(Connection conn, int id) {
@@ -166,6 +166,70 @@ public class SQLConnector {
 			e.printStackTrace();
 		}
 		return retour;
+	}
+	
+	public static List<Document> executeResearchByCriteria(String col, String criteria, Connection conn){
+		Statement stmt;
+		List<Document> resultat = new ArrayList<Document>();
+		try {
+			stmt = conn.createStatement();
+			if(col.equals("Date")){
+				col = "I_DATE";
+			}
+			ResultSet rs = stmt.executeQuery("SELECT * FROM IMAGE WHERE "+col+"=\""+criteria+"\"");
+			while (rs.next()) {
+				resultat.add(new Document(rs.getInt("I_ID"), rs
+						.getDate("I_DATE"), rs.getInt("SIZE"), rs
+						.getString("NOM"), rs.getString("CHEMIN"), rs
+						.getInt("WIDTH"), rs.getInt("HEIGHT"), rs
+						.getInt("NOTE"), rs.getString("DESCRIPTION")));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return resultat;
+	}
+	
+	public static int getNumberOfImagesByTags(String tagName, Connection conn){
+		Statement stmt;
+		int res=0;
+		try {
+			stmt = conn.createStatement();
+			int tagId;
+			ResultSet rs = stmt.executeQuery("SELECT T_ID FROM TAG WHERE NOM=\""+tagName+"\"");
+			rs.next();
+			tagId=rs.getInt(1);
+			rs = stmt.executeQuery("SELECT COUNT(T_ID) FROM IMTAG WHERE T_ID="+tagId+" GROUP BY T_ID");
+			if(rs.next()){
+				res = rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return res;
+	}
+	
+	public static List<Document> getDocumentsByTag(String tagName, Connection conn){
+		Statement stmt;
+		List<Document> resultat = new ArrayList<Document>();
+		try {
+			stmt = conn.createStatement();
+			int tagId;
+			ResultSet rs = stmt.executeQuery("SELECT T_ID FROM TAG WHERE NOM=\""+tagName+"\"");
+			rs.next();
+			tagId=rs.getInt(1);
+			rs = stmt.executeQuery("SELECT * FROM IMAGE D WHERE EXISTS(SELECT * FROM IMTAG I WHERE I.I_ID = D.I_ID AND T_ID="+tagId+")");
+			while (rs.next()) {
+				resultat.add(new Document(rs.getInt("I_ID"), rs
+						.getDate("I_DATE"), rs.getInt("SIZE"), rs
+						.getString("NOM"), rs.getString("CHEMIN"), rs
+						.getInt("WIDTH"), rs.getInt("HEIGHT"), rs
+						.getInt("NOTE"), rs.getString("DESCRIPTION")));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return resultat;
 	}
 
 	public static void closeConnexion(Connection c) {

@@ -42,12 +42,15 @@ public class AddSeriesAndTags extends JFrame implements ActionListener{
 	String[][] tagsData;
 	String[][] seriesData;
 	String[] colNames = {"nom"};
+	GEDPanel parent;
 	
 	
 	GridBagConstraints cons;
 	
-	public AddSeriesAndTags(){
+	public AddSeriesAndTags(GEDPanel parent){
 		super("Tags & Séries");
+		
+		this.parent = parent;
 		
 		label1 = new JLabel("Tags");
 		label2 = new JLabel("Séries");
@@ -140,6 +143,7 @@ public class AddSeriesAndTags extends JFrame implements ActionListener{
 		
 		if(e.getSource() instanceof JButton){
 			updateTables();
+			parent.getBrowserPanel().updateTable();
 		}
 	}
 	

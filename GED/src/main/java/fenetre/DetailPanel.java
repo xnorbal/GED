@@ -20,7 +20,7 @@ import donnees.SQLConnector;
 
 public class DetailPanel extends JPanel {
 	private Document d;
-	private String[] legendes = { "largeur :", "hauteur :", "taille :", "tags :",
+	private String[] legendes = { "date :", "largeur :", "hauteur :", "taille :", "tags :",
 			"séries :" };
 	private JLabel[] labels;
 	private JTextField[] details;
@@ -42,11 +42,12 @@ public class DetailPanel extends JPanel {
 			details[i].setEditable(false);
 		}
 		
-		details[0].setText(Integer.toString(d.getWidth())+ " px");
-		details[1].setText(Integer.toString(d.getHeight())+ " px");
-		details[2].setText(Integer.toString(d.getSize() / 1024) + " Ko");
-		details[3].setText(d.getTags().replace("\n", ", "));
-		details[4].setText(d.getSeries().replace("\n", ", "));
+		details[0].setText(d.getDate().toString());
+		details[1].setText(Integer.toString(d.getWidth())+ " px");
+		details[2].setText(Integer.toString(d.getHeight())+ " px");
+		details[3].setText(Integer.toString(d.getSize() / 1024) + " Ko");
+		details[4].setText(d.getTags().replace("\n", ", "));
+		details[5].setText(d.getSeries().replace("\n", ", "));
 
 		setLayout(new GridBagLayout());
 		cons = new GridBagConstraints();

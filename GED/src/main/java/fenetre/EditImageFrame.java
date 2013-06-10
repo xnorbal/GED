@@ -288,7 +288,7 @@ public class EditImageFrame extends JFrame implements ActionListener {
 				requete += "UPDATE IMAGE SET NOTE=";
 				requete += note.getSelectedIndex();
 				requete += ", DESCRIPTION=\"";
-				requete += description.getText() + "\"";
+				requete += description.getText().replace("\"", "\\\"") + "\"";
 				requete += " WHERE I_ID=" + doc.getId();
 				System.out.println(requete);
 				SQLConnector.executeUpdateInsert(conn, requete);
@@ -325,6 +325,7 @@ public class EditImageFrame extends JFrame implements ActionListener {
 				SQLConnector.closeConnexion(conn);
 				gedPanel.updateTable();
 				gedPanel.updateDetails(row);
+				gedPanel.getBrowserPanel().updateTable();
 				this.dispose();
 			}
 		}

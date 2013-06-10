@@ -77,7 +77,7 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		setLayout(new GridBagLayout());
 		cons = new GridBagConstraints();
 
-		browser = new BrowserPanel();// initialisation du TagBrowser
+		browser = new BrowserPanel(this);// initialisation du TagBrowser
 
 		// Initialisation de la table
 		table = new JTable();
@@ -92,6 +92,7 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		cons.insets = new Insets(2, 2, 2, 2);
 
 		setConstraints(0, 0, 1, 3);
+		cons.anchor = GridBagConstraints.NORTH;
 		add(browser, cons);
 		setConstraints(1, 0, 1, 3);
 		add(scrollPane, cons);
@@ -142,11 +143,7 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		return table;
 	}
 
-	public void updateTable() {
-		Connection conn = SQLConnector.enableConnexion();
-		docs = SQLConnector.executeSelectDocuments(conn);
-		SQLConnector.closeConnexion(conn);
-
+	public void DisplayContent() {
 		data = new String[docs.size()][colNames.length];
 		for (int i = 0; i < docs.size(); i++) {
 			data[i][0] = Integer.toString(docs.get(i).getId());
@@ -164,6 +161,30 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		model.fireTableDataChanged();
 	}
 
+	public void updateTable() {
+		Connection conn = SQLConnector.enableConnexion();
+		docs = SQLConnector.executeSelectDocuments(conn);
+		SQLConnector.closeConnexion(conn);
+
+		DisplayContent();
+	}
+
+	public void updateForResearch(String col, String criteria) {
+		Connection conn = SQLConnector.enableConnexion();
+		docs = SQLConnector.executeResearchByCriteria(col, criteria, conn);
+		SQLConnector.closeConnexion(conn);
+
+		DisplayContent();
+	}
+	
+	public void updateForTags(String tag) {
+		Connection conn = SQLConnector.enableConnexion();
+		docs = SQLConnector.getDocumentsByTag(tag, conn);
+		SQLConnector.closeConnexion(conn);
+
+		DisplayContent();		
+	}
+
 	public void valueChanged(ListSelectionEvent listSelectionEvent) {
 
 		if (listSelectionEvent.getValueIsAdjusting()) {
@@ -178,21 +199,20 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 			int selectedRow = lsm.getMinSelectionIndex();
 			String chemin = (String) table.getValueAt(selectedRow, 3);
 			icon = new ImageIcon(chemin);
-			if(icon.getIconHeight()<icon.getIconWidth()){
+			if (icon.getIconHeight() < icon.getIconWidth()) {
 				icon = new ImageIcon(icon.getImage().getScaledInstance(250,
 						250 * icon.getIconHeight() / icon.getIconWidth(),
 						Image.SCALE_DEFAULT));
-			}
-			else{
-				icon = new ImageIcon(icon.getImage().getScaledInstance(250 * icon.getIconWidth() / icon.getIconHeight(),
-						250,
+			} else {
+				icon = new ImageIcon(icon.getImage().getScaledInstance(
+						250 * icon.getIconWidth() / icon.getIconHeight(), 250,
 						Image.SCALE_DEFAULT));
-			}			
+			}
 			updateDetails(selectedRow);
 		}
 	}
-	
-	public void updateDetails(int selectedRow){
+
+	public void updateDetails(int selectedRow) {
 		remove(miniature);
 		remove(detailPanel);
 		miniature = new JLabel(icon);
@@ -206,5 +226,9 @@ public class GEDPanel extends JPanel implements ListSelectionListener {
 		texte.setText(detailPanel.getDocument().getDesc());
 		repaint();
 		revalidate();
+	}
+	
+	public BrowserPanel getBrowserPanel(){
+		return browser;
 	}
 }

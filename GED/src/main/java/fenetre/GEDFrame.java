@@ -196,6 +196,7 @@ public class GEDFrame extends JFrame implements ActionListener {
 					SQLConnector.executeUpdateInsert(conn, request);
 					SQLConnector.closeConnexion(conn);
 					myGED.updateTable();
+					myGED.getBrowserPanel().updateTable();
 				}
 			} else if (button == editer) {
 				int row = myGED.getTable().getSelectedRow();
@@ -208,7 +209,7 @@ public class GEDFrame extends JFrame implements ActionListener {
 					EditImageFrame myEditFrame = new EditImageFrame("", d, myGED, row);
 				}
 			} else if (button == ajoutFav) {
-				new AddSeriesAndTags();
+				new AddSeriesAndTags(myGED);
 				// Ouverture de la fenêtre d'ajout de series et tags
 			}
 			else if (button == parametres) {
